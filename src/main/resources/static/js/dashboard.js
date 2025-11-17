@@ -1,4 +1,5 @@
-const map = L.map("map").setView([0, 0], 15);
+// Center the map on the Philippines
+const map = L.map("map").setView([13.0, 122.0], 6); // [lat, lng], zoom
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
 // Track markers by device ID
@@ -11,11 +12,11 @@ function updateMarkers() {
             if (!Array.isArray(devices)) return;
 
             devices.forEach(device => {
-                const id = device.id;   // Make sure API returns 'id'
+                const id = device.id;
                 const lat = device.latitude;
                 const lng = device.longitude;
 
-                if (!lat || !lng) return; // Skip invalid data
+                if (!lat || !lng) return;
 
                 if (markers[id]) {
                     markers[id].setLatLng([lat, lng]);
@@ -24,7 +25,7 @@ function updateMarkers() {
                 }
             });
 
-            // Remove markers that no longer exist (rescued devices)
+            // Remove markers for devices no longer active
             Object.keys(markers).forEach(id => {
                 if (!devices.find(d => d.id === parseInt(id))) {
                     map.removeLayer(markers[id]);
