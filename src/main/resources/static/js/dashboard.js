@@ -1,25 +1,42 @@
 const map = L.map("map").setView([0, 0], 15);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
-let marker = L.marker([0, 0]).addTo(map);
+// Track markers by device ID
+const markers = {};
 
-function updateMarker() {
+function updateMarkers() {
     fetch("/api/location")
         .then(res => res.json())
-        .then(loc => {
-            if (!loc || loc.latitude === undefined) return;
+        .then(devices => {
+            if (!Array.isArray(devices)) return;
 
-            const lat = loc.latitude;
-            const lng = loc.longitude;
+            devices.forEach(device => {
+                const id = device.id;   // Make sure API returns 'id'
+                const lat = device.latitude;
+                const lng = device.longitude;
 
-            marker.setLatLng([lat, lng]);
-            map.setView([lat, lng]);
+                if (!lat || !lng) return; // Skip invalid data
+
+                if (markers[id]) {
+                    markers[id].setLatLng([lat, lng]);
+                } else {
+                    markers[id] = L.marker([lat, lng]).addTo(map);
+                }
+            });
+
+            // Remove markers that no longer exist (rescued devices)
+            Object.keys(markers).forEach(id => {
+                if (!devices.find(d => d.id === parseInt(id))) {
+                    map.removeLayer(markers[id]);
+                    delete markers[id];
+                }
+            });
         })
-        .catch(err => console.error("Error fetching location:", err));
+        .catch(err => console.error("Error fetching devices:", err));
 }
 
-// Load immediately
-updateMarker();
+// Initial load
+updateMarkers();
 
-// Then refresh every 5 seconds
-setInterval(updateMarker, 5000);
+// Refresh every 2 seconds
+setInterval(updateMarkers, 2000);

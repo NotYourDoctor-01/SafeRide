@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
+<head>
+    <link rel="stylesheet" href="@{/css/phone.css}">
+</head>
+
 <body>
 
-    <form th:action="@{/send-location}" method="post">
+    <form th:action="@{/send-location}" th:object="${deviceInformation}" method="post">
         <input type="hidden" id="lat" name="latitude">
         <input type="hidden" id="lon" name="longitude">
 
