@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <form th:action="@{/send-location}" method="post">
+        <input type="hidden" id="lat" name="latitude">
+        <input type="hidden" id="lon" name="longitude">
+
+        <button type="button" onclick="sendLocation()">Send My Location</button>
+    </form>
+
+    <!-- Load external JS -->
+    <script th:src="@{/js/location.js}"></script>
+
+</body>
+
+</html>

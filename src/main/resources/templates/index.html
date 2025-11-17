@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Device Tracker</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        // Create the map, default center (Philippines)
+        const map = L.map('map').setView([14.5995, 120.9842], 12);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Marker for the device
+        let marker = L.marker([14.5995, 120.9842]).addTo(map);
+
+        async function updateLocation() {
+            try {
+                const res = await fetch('/api/location/latest');
+                const data = await res.json();
+
+                const lat = data.latitude;
+                const lng = data.longitude;
+
+                marker.setLatLng([lat, lng]);
+                map.setView([lat, lng]); // optional: recenter map
+            } catch (error) {
+                console.error("Error fetching location:", error);
+            }
+        }
+
+        // Fetch new location every 5 seconds
+        setInterval(updateLocation, 5000);
+
+        // Load immediately on start
+        updateLocation();
+    </script>
+</body>
+
+</html>
