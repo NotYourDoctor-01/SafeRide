@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Submit Report</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <h2>Submit Report</h2>
+
+    <!-- Form posts to /report and binds to Report model -->
+    <form th:action="@{/report}" method="post" th:object="${report}">
+        <label>Type:</label>
+        <select th:field="*{type}">
+            <option value="ROAD_CONDITION">Road Condition</option>
+            <option value="HAZARD">Hazard</option>
+            <option value="POI">Point of Interest</option>
+        </select>
+
+        <label>Description:</label>
+        <textarea th:field="*{description}"></textarea>
+
+        <input type="hidden" th:field="*{latitude}" id="lat">
+        <input type="hidden" th:field="*{longitude}" id="lng">
+
+        <button type="submit">Send Report</button>
+    </form>
+
+    <div id="map" style="height: 300px; margin-top: 10px;"></div>
+
+    <script>
+        // Initialize the map centered on Manila
+        const map = L.map('map').setView([14.5995, 120.9842], 13);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker = null;
+
+        // Place a marker and update hidden fields
+        function setMarker(lat, lng) {
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+            document.getElementById('lat').value = lat;
+            document.getElementById('lng').value = lng;
+        }
+
+        // Click map to choose location
+        map.on('click', e => {
+            setMarker(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Autofill current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                setMarker(pos.coords.latitude, pos.coords.longitude);
+                map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+            });
+        }
+    </script>
+</body>
+
+</html>

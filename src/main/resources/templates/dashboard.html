@@ -2,20 +2,47 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+    <title>Report Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <style>
-        #map {
-            height: 100vh;
-            width: 100%;
-        }
-    </style>
 </head>
 
 <body>
-    <div id="map"></div>
-    <script th:src="@{/js/dashboard.js}"></script>
+    <div id="map" style="height: 500px;"></div>
+    <script>
+        const map = L.map('map').setView([14.5995, 120.9842], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        const colors = {
+            ROAD_CONDITION: 'green',
+            HAZARD: 'red',
+            POI: 'blue'
+        };
+
+        async function loadReports() {
+            const response = await fetch('/api/reports');
+            const reports = await response.json();
+
+            reports.forEach(report => {
+                const color = colors[report.type] || 'gray';
+                const marker = L.circleMarker([report.latitude, report.longitude], {
+                    radius: 8,
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.8
+                }).addTo(map);
+
+                let popup = `<strong>Type:</strong> ${report.type}<br>`;
+                if (report.description) popup += `<strong>Description:</strong> ${report.description}<br>`;
+                popup += `<strong>Time:</strong> ${new Date(report.timestamp).toLocaleString()}`;
+
+                marker.bindPopup(popup);
+            });
+        }
+
+        loadReports();
+    </script>
+
 </body>
 
 </html>
