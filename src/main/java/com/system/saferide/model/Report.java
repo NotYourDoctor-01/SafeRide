@@ -15,6 +15,14 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     private double latitude;
     private double longitude;
 
@@ -24,6 +32,16 @@ public class Report {
     private String description;
 
     private LocalDateTime timestamp;
+
+    private boolean helpOnTheWay = false;
+
+    public boolean isHelpOnTheWay() {
+        return helpOnTheWay;
+    }
+
+    public void setHelpOnTheWay(boolean helpOnTheWay) {
+        this.helpOnTheWay = helpOnTheWay;
+    }
 
     public double getLatitude() {
         return latitude;

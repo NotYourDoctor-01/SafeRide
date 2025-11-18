@@ -5,6 +5,7 @@
     <title>Report Dashboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -32,6 +33,29 @@
                 height: 400px;
             }
         }
+
+        .popup-button {
+            margin-top: 5px;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            color: white;
+        }
+
+        .delete-btn {
+            background: red;
+        }
+
+        .help-btn {
+            background: blue;
+        }
+
+        .help-label {
+            color: green;
+            font-weight: bold;
+            margin-top: 5px;
+        }
     </style>
 </head>
 
@@ -49,35 +73,97 @@
         const colors = {
             ROAD_CONDITION: 'green',
             HAZARD: 'red',
-            POI: 'blue'
+            POI: 'blue',
+            NEED_AID: 'orange'
         };
+
+        let activeMarkers = [];
 
         async function loadReports() {
             try {
+                // Remove old markers
+                activeMarkers.forEach(marker => map.removeLayer(marker));
+                activeMarkers = [];
+
                 const response = await fetch('/api/reports');
                 const reports = await response.json();
 
                 reports.forEach(report => {
-                    const color = colors[report.type] || 'gray';
                     const marker = L.circleMarker([report.latitude, report.longitude], {
                         radius: 8,
-                        color: color,
-                        fillColor: color,
+                        color: colors[report.type] || 'gray',
+                        fillColor: colors[report.type] || 'gray',
                         fillOpacity: 0.8
                     }).addTo(map);
 
-                    let popup = `<strong>Type:</strong> ${report.type}<br>`;
-                    if (report.description) popup += `<strong>Description:</strong> ${report.description}<br>`;
-                    popup += `<strong>Time:</strong> ${new Date(report.timestamp).toLocaleString()}`;
+                    activeMarkers.push(marker);
 
-                    marker.bindPopup(popup);
+                    // Build popup content
+                    let popupContent = `
+                        <strong>Type:</strong> ${report.type}<br>
+                        <strong>Description:</strong> ${report.description || ''}<br>
+                        <strong>Time:</strong> ${new Date(report.timestamp).toLocaleString()}<br><br>
+                        <button class="popup-button delete-btn" onclick="deleteReport(${report.id})">Delete</button>
+                    `;
+
+                    // NEED_AID extra button or label
+                    if (report.type === "NEED_AID") {
+                        if (report.helpOnTheWay) {
+                            popupContent += `<div class="help-label">Someone is coming to help!</div>`;
+                        } else {
+                            popupContent += `
+                                <div id="aid-${report.id}" style="margin-top:10px;">
+                                    <button class="popup-button help-btn" onclick="helpOnTheWay(${report.id})">I'm on my way</button>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    marker.bindPopup(popupContent);
                 });
+
             } catch (error) {
                 console.error("Failed to load reports:", error);
             }
         }
 
+        async function deleteReport(id) {
+            try {
+                const res = await fetch(`/api/reports/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    alert("Report removed");
+                    loadReports();
+                } else {
+                    alert("Failed to delete");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error deleting report.");
+            }
+        }
+
+        async function helpOnTheWay(id) {
+            try {
+                const res = await fetch(`/api/reports/${id}/help`, { method: "POST" });
+                if (res.ok) {
+                    const aidDiv = document.getElementById(`aid-${id}`);
+                    if (aidDiv) {
+                        aidDiv.innerHTML = `<div class="help-label">Someone is coming to help!</div>`;
+                    }
+                } else {
+                    alert("Failed to mark help on the way.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error occurred.");
+            }
+        }
+
+        // Initial load
         loadReports();
+
+        // Auto-refresh every 3 seconds
+        setInterval(loadReports, 3000);
     </script>
 </body>
 
