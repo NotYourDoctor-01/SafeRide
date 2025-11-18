@@ -34,3 +34,7 @@ body {
 #vitals p {
     margin: 5px 0;
 }
+
+.custom-marker {
+    transform: translate(-14px, -28px);
+}

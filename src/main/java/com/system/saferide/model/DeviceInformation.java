@@ -1,83 +1,49 @@
 package com.system.saferide.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
+@Table(name = "device_information")
 public class DeviceInformation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String deviceId; // unique ID per device
-    private double longitude;
-    private double latitude;
-    private double pulse;
-    private double oxygenLevel;
+    @Column(unique = true)
+    private String deviceId;
+
+    private Double latitude;
+    private Double longitude;
+
+    private Integer heartRate;
+    private Integer spo2;
+
+    private boolean impactDetected;
     private boolean rescued;
 
-    // Constructors
-    public DeviceInformation() {
-    }
+    // Getters & setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public DeviceInformation(String deviceId) {
-        this.deviceId = deviceId;
-        this.rescued = false; // default
-    }
+    public String getDeviceId() { return deviceId; }
+    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
 
-    // Getters and setters
-    public Long getId() {
-        return id;
-    }
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
 
-    public String getDeviceId() {
-        return deviceId;
-    }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
+    public Integer getHeartRate() { return heartRate; }
+    public void setHeartRate(Integer heartRate) { this.heartRate = heartRate; }
 
-    public double getLongitude() {
-        return longitude;
-    }
+    public Integer getSpo2() { return spo2; }
+    public void setSpo2(Integer spo2) { this.spo2 = spo2; }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
+    public boolean isImpactDetected() { return impactDetected; }
+    public void setImpactDetected(boolean impactDetected) { this.impactDetected = impactDetected; }
 
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getPulse() {
-        return pulse;
-    }
-
-    public void setPulse(double pulse) {
-        this.pulse = pulse;
-    }
-
-    public double getOxygenLevel() {
-        return oxygenLevel;
-    }
-
-    public void setOxygenLevel(double oxygenLevel) {
-        this.oxygenLevel = oxygenLevel;
-    }
-
-    public boolean getRescued() {
-        return rescued;
-    }
-
-    public void setRescued(boolean rescued) {
-        this.rescued = rescued;
-    }
+    public boolean isRescued() { return rescued; }
+    public void setRescued(boolean rescued) { this.rescued = rescued; }
 }

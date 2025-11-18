@@ -2,6 +2,7 @@ package com.system.saferide.controller;
 
 import com.system.saferide.model.DeviceInformation;
 import com.system.saferide.repository.DeviceInformationRepo;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,25 +17,32 @@ public class LocationController {
         this.repository = repository;
     }
 
-    // Return all devices that are not rescued
     @GetMapping("/location")
     public List<DeviceInformation> getActiveDevices() {
         return repository.findByRescuedFalse();
     }
 
-    // Receive location updates from a device
     @PostMapping("/send-location")
-    public DeviceInformation updateLocation(@RequestBody DeviceInformation incoming) {
-        // If the device already exists, update it; otherwise, save new
-        DeviceInformation device = repository.findById(incoming.getId())
-                .orElse(incoming); // If new, just use incoming object
+    public ResponseEntity<DeviceInformation> updateLocation(@RequestBody DeviceInformation incoming) {
+        if (incoming.getDeviceId() == null || incoming.getDeviceId().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
 
+        DeviceInformation device = repository.findByDeviceId(incoming.getDeviceId())
+                .orElseGet(DeviceInformation::new);
+
+        device.setDeviceId(incoming.getDeviceId());
         device.setLatitude(incoming.getLatitude());
         device.setLongitude(incoming.getLongitude());
-        device.setPulse(incoming.getPulse());
-        device.setOxygenLevel(incoming.getOxygenLevel());
-        device.setRescued(incoming.getRescued());
+        device.setHeartRate(incoming.getHeartRate());
+        device.setSpo2(incoming.getSpo2());
+        device.setImpactDetected(incoming.isImpactDetected());
+        // Do not overwrite rescued unless explicitly provided true
+        if (incoming.isRescued()) {
+            device.setRescued(true);
+        }
 
-        return repository.save(device);
+        DeviceInformation saved = repository.save(device);
+        return ResponseEntity.ok(saved);
     }
 }
