@@ -5,13 +5,46 @@
     <title>Report Dashboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #map {
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 600px) {
+            #map {
+                height: 400px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div id="map" style="height: 500px;"></div>
+    <h2>Report Dashboard</h2>
+    <div id="map"></div>
+
     <script>
         const map = L.map('map').setView([14.5995, 120.9842], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
         const colors = {
             ROAD_CONDITION: 'green',
@@ -20,29 +53,32 @@
         };
 
         async function loadReports() {
-            const response = await fetch('/api/reports');
-            const reports = await response.json();
+            try {
+                const response = await fetch('/api/reports');
+                const reports = await response.json();
 
-            reports.forEach(report => {
-                const color = colors[report.type] || 'gray';
-                const marker = L.circleMarker([report.latitude, report.longitude], {
-                    radius: 8,
-                    color: color,
-                    fillColor: color,
-                    fillOpacity: 0.8
-                }).addTo(map);
+                reports.forEach(report => {
+                    const color = colors[report.type] || 'gray';
+                    const marker = L.circleMarker([report.latitude, report.longitude], {
+                        radius: 8,
+                        color: color,
+                        fillColor: color,
+                        fillOpacity: 0.8
+                    }).addTo(map);
 
-                let popup = `<strong>Type:</strong> ${report.type}<br>`;
-                if (report.description) popup += `<strong>Description:</strong> ${report.description}<br>`;
-                popup += `<strong>Time:</strong> ${new Date(report.timestamp).toLocaleString()}`;
+                    let popup = `<strong>Type:</strong> ${report.type}<br>`;
+                    if (report.description) popup += `<strong>Description:</strong> ${report.description}<br>`;
+                    popup += `<strong>Time:</strong> ${new Date(report.timestamp).toLocaleString()}`;
 
-                marker.bindPopup(popup);
-            });
+                    marker.bindPopup(popup);
+                });
+            } catch (error) {
+                console.error("Failed to load reports:", error);
+            }
         }
 
         loadReports();
     </script>
-
 </body>
 
 </html>

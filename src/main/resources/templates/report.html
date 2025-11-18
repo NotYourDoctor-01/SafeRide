@@ -5,12 +5,80 @@
     <title>Submit Report</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        select,
+        textarea,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #map {
+            max-width: 500px;
+            height: 300px;
+            margin: 20px auto 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </head>
 
 <body>
     <h2>Submit Report</h2>
 
-    <!-- Form posts to /report and binds to Report model -->
+    <!-- Map at the top -->
+    <div id="map" style="height: 300px; margin-bottom: 20px;"></div>
+
+    <!-- Form below the map -->
     <form th:action="@{/report}" method="post" th:object="${report}">
         <label>Type:</label>
         <select th:field="*{type}">
@@ -27,8 +95,6 @@
 
         <button type="submit">Send Report</button>
     </form>
-
-    <div id="map" style="height: 300px; margin-top: 10px;"></div>
 
     <script>
         // Initialize the map centered on Manila
@@ -66,5 +132,6 @@
         }
     </script>
 </body>
+
 
 </html>
