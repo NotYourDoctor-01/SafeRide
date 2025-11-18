@@ -9,29 +9,65 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            background-color: #1e1e2f;
+            color: #fff;
         }
 
-        h2 {
-            text-align: center;
-            color: #333;
+        #sidebar {
+            width: 300px;
+            min-width: 200px;
+            max-width: 400px;
+            background-color: #2a1f3c;
+            /* darker purple */
+            padding: 15px;
+            overflow-y: auto;
+            resize: horizontal;
+            border-right: 4px solid #9b59b6;
+            /* prominent bright purple */
+        }
+
+        #sidebar h2 {
+            color: #e0c3ff;
+            /* brighter purple for title */
             margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #sidebar h3 {
+            color: #d8b3ff;
+            /* slightly lighter purple for section headings */
+            margin-top: 20px;
+            margin-bottom: 5px;
+        }
+
+        #sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 10px 0;
+        }
+
+        #sidebar li {
+            padding: 6px 8px;
+            margin-bottom: 5px;
+            background-color: #3b2a5f;
+            /* dark purple background */
+            border-left: 4px solid #9b59b6;
+            /* strong accent */
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #sidebar li:hover {
+            background-color: #7f5ccf;
+            /* bright purple on hover */
         }
 
         #map {
-            width: 100%;
-            max-width: 900px;
-            height: 500px;
-            margin: 0 auto;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        @media (max-width: 600px) {
-            #map {
-                height: 400px;
-            }
+            flex: 1;
         }
 
         .popup-button {
@@ -44,23 +80,43 @@
         }
 
         .delete-btn {
-            background: red;
+            background: #e74c3c;
         }
 
         .help-btn {
-            background: blue;
+            background: #3498db;
         }
 
         .help-label {
-            color: green;
+            color: #2ecc71;
             font-weight: bold;
             margin-top: 5px;
         }
+
+        /* Scrollbar for sidebar */
+        #sidebar::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #2a1f3c;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background-color: #9b59b6;
+            border-radius: 5px;
+        }
     </style>
+
 </head>
 
 <body>
-    <h2>Report Dashboard</h2>
+    <div id="sidebar">
+        <h2>Active Reports</h2>
+        <!-- Report lists will be injected here -->
+        <div id="reportLists"></div>
+    </div>
+
     <div id="map"></div>
 
     <script>
@@ -77,7 +133,15 @@
             NEED_AID: 'orange'
         };
 
+        const typeLabels = {
+            ROAD_CONDITION: "Road Condition",
+            HAZARD: "Hazard",
+            POI: "Point of Interest",
+            NEED_AID: "Need Assistance"
+        };
+
         let activeMarkers = [];
+        let reportsData = [];
 
         async function loadReports() {
             try {
@@ -87,6 +151,8 @@
 
                 const response = await fetch('/api/reports');
                 const reports = await response.json();
+                reportsData = reports; // store for sidebar
+                renderSidebar();
 
                 reports.forEach(report => {
                     const marker = L.circleMarker([report.latitude, report.longitude], {
@@ -98,24 +164,18 @@
 
                     activeMarkers.push(marker);
 
-                    // Build popup content
                     let popupContent = `
-                        <strong>Type:</strong> ${report.type}<br>
+                        <strong>Type:</strong> ${typeLabels[report.type] || report.type}<br>
                         <strong>Description:</strong> ${report.description || ''}<br>
                         <strong>Time:</strong> ${new Date(report.timestamp).toLocaleString()}<br><br>
                         <button class="popup-button delete-btn" onclick="deleteReport(${report.id})">Delete</button>
                     `;
 
-                    // NEED_AID extra button or label
                     if (report.type === "NEED_AID") {
                         if (report.helpOnTheWay) {
                             popupContent += `<div class="help-label">Someone is coming to help!</div>`;
                         } else {
-                            popupContent += `
-                                <div id="aid-${report.id}" style="margin-top:10px;">
-                                    <button class="popup-button help-btn" onclick="helpOnTheWay(${report.id})">I'm on my way</button>
-                                </div>
-                            `;
+                            popupContent += `<button class="popup-button help-btn" onclick="helpOnTheWay(${report.id})">I'm on my way</button>`;
                         }
                     }
 
@@ -127,11 +187,37 @@
             }
         }
 
+        function renderSidebar() {
+            const container = document.getElementById("reportLists");
+            container.innerHTML = "";
+
+            const types = Object.keys(typeLabels);
+            types.forEach(type => {
+                const filtered = reportsData.filter(r => r.type === type);
+                if (filtered.length > 0) {
+                    const h3 = document.createElement("h3");
+                    h3.textContent = typeLabels[type];
+                    container.appendChild(h3);
+
+                    const ul = document.createElement("ul");
+                    filtered.forEach(report => {
+                        const li = document.createElement("li");
+                        li.textContent = report.description || `Report #${report.id}`;
+                        li.addEventListener("click", () => {
+                            map.setView([report.latitude, report.longitude], 16);
+                            activeMarkers.find(m => m.getLatLng().lat === report.latitude && m.getLatLng().lng === report.longitude)?.openPopup();
+                        });
+                        ul.appendChild(li);
+                    });
+                    container.appendChild(ul);
+                }
+            });
+        }
+
         async function deleteReport(id) {
             try {
                 const res = await fetch(`/api/reports/${id}`, { method: "DELETE" });
                 if (res.ok) {
-                    alert("Report removed");
                     loadReports();
                 } else {
                     alert("Failed to delete");
@@ -146,10 +232,7 @@
             try {
                 const res = await fetch(`/api/reports/${id}/help`, { method: "POST" });
                 if (res.ok) {
-                    const aidDiv = document.getElementById(`aid-${id}`);
-                    if (aidDiv) {
-                        aidDiv.innerHTML = `<div class="help-label">Someone is coming to help!</div>`;
-                    }
+                    loadReports();
                 } else {
                     alert("Failed to mark help on the way.");
                 }
@@ -159,11 +242,8 @@
             }
         }
 
-        // Initial load
         loadReports();
-
-        // Auto-refresh every 3 seconds
-        setInterval(loadReports, 3000);
+        setInterval(loadReports, 7000);
     </script>
 </body>
 

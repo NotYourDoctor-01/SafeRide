@@ -8,40 +8,57 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 20px;
+            background-color: #1e1e2f;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
         h2 {
             text-align: center;
-            color: #333;
+            color: #e0c3ff;
+            margin: 20px 0;
         }
 
         form {
+            width: 90%;
             max-width: 500px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            background: #2a1f3c;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
             margin-top: 15px;
             font-weight: bold;
-            color: #555;
+            color: #d8b3ff;
         }
 
         select,
         textarea,
         button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-top: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
+            border-radius: 6px;
+            border: 1px solid #5a3ea0;
             font-size: 14px;
+            background-color: #3b2a5f;
+            color: #fff;
+        }
+
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #9b59b6;
+            box-shadow: 0 0 5px #9b59b6;
         }
 
         textarea {
@@ -50,27 +67,28 @@
         }
 
         button {
-            background-color: #4CAF50;
+            background-color: #9b59b6;
             color: white;
             border: none;
             margin-top: 20px;
             cursor: pointer;
-            transition: background 0.3s;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
 
         button:hover {
-            background-color: #45a049;
+            background-color: #7f3fcc;
         }
 
         #map {
+            width: 90%;
             max-width: 500px;
             height: 300px;
-            margin: 20px auto 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            margin: 20px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
-        /* Success popup */
         /* Success popup centered in viewport */
         #successPopup {
             display: none;
@@ -78,15 +96,35 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #4CAF50;
+            background: #9b59b6;
             color: white;
-            padding: 20px 30px;
-            border-radius: 10px;
+            padding: 25px 40px;
+            border-radius: 12px;
             font-size: 18px;
             font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             z-index: 9999;
             text-align: center;
+        }
+
+        /* Go to dashboard button */
+        #dashboardBtn {
+            background-color: #6c3483;
+            border: none;
+            padding: 12px;
+            width: 90%;
+            max-width: 500px;
+            margin: 10px auto 30px auto;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        #dashboardBtn:hover {
+            background-color: #813fb0;
         }
     </style>
 </head>
@@ -113,14 +151,14 @@
 
         <button type="submit">Send Report</button>
     </form>
+
     <form th:action="@{/dashboard}" method="get">
-        <button type="submit">Go to Dashboard</button>
+        <button id="dashboardBtn" type="submit">Go to Dashboard</button>
     </form>
 
     <div id="successPopup">Report sent!</div>
 
     <script>
-        // Initialize map centered on Manila
         const map = L.map('map').setView([14.5995, 120.9842], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -139,10 +177,8 @@
             document.getElementById('lng').value = lng;
         }
 
-        // Click map to choose location
         map.on('click', e => setMarker(e.latlng.lat, e.latlng.lng));
 
-        // Autofill current location if permission granted
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
                 setMarker(pos.coords.latitude, pos.coords.longitude);
@@ -150,7 +186,6 @@
             });
         }
 
-        // Handle form submission via fetch
         const form = document.getElementById("reportForm");
         const popup = document.getElementById("successPopup");
 
@@ -172,11 +207,8 @@
                 });
 
                 if (response.ok) {
-                    // Show success popup
                     popup.style.display = "block";
                     setTimeout(() => popup.style.display = "none", 2500);
-
-                    // Reset form and marker
                     form.reset();
                     if (marker) {
                         map.removeLayer(marker);
